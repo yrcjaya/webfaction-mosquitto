@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# script/setup: Set up application for the first time after cloning, or set it
+#               back to the initial first unused state.
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+ROOT_DIR="$(pwd -P)"
+
+script/bootstrap
+
+cd _build
+
+echo "===> Setting up c-ares..."
+tar zxf c-ares-1.10.0.tar.gz
+cd c-ares-1.10.0
+./configure --prefix=$ROOT_DIR
+
+echo "===> Building c-ares..."
+make
+LIBCARES_PATH="$(pwd -P)/.libs"
+
+cd  ..
+
+echo "===> Setting up mosquitto..."
+tar zxf mosquitto-1.4.3.tar.gz
+
+cd mosquitto-1.4.3
+
+make mosquitto LDFLAGS=$LIBCARES_PATH/libcares.a C_INCLUDE_PATH=$ROOT_DIR/_build/c-ares-1.10.0
+make install LDFLAGS=$LIBCARES_PATH/libcares.a C_INCLUDE_PATH=$ROOT_DIR/_build/c-ares-1.10.0 prefix= DESTDIR=$ROOT_DIR

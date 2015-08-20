@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# script/bootstrap: Resolve all dependencies that the application requires to
+#                   run.
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+mkdir -p _build
+cd _build
+
+if [ ! -r c-ares-1.10.0.tar.gz ]
+then
+    echo "==> Downloading c-ares"
+    wget http://c-ares.haxx.se/download/c-ares-1.10.0.tar.gz
+fi
+
+if [ ! -r mosquitto-1.4.3.tar.gz ]
+then
+    echo "==> Downloading mosquitto"
+    wget http://mosquitto.org/files/source/mosquitto-1.4.3.tar.gz
+fi
+
+cd ../
