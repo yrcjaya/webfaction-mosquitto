@@ -9,6 +9,8 @@ cd "$(dirname "$0")/.."
 
 ROOT_DIR="$(pwd -P)"
 
+export CARES_CFLAG_EXTRAS="-static"
+
 script/bootstrap
 
 cd _build
@@ -29,5 +31,26 @@ tar zxf mosquitto-1.4.3.tar.gz
 
 cd mosquitto-1.4.3
 
-make mosquitto LDFLAGS=$LIBCARES_PATH/libcares.a C_INCLUDE_PATH=$ROOT_DIR/_build/c-ares-1.10.0
-make install LDFLAGS=$LIBCARES_PATH/libcares.a C_INCLUDE_PATH=$ROOT_DIR/_build/c-ares-1.10.0 prefix= DESTDIR=$ROOT_DIR
+echo "===> Building mosquitto..."
+export CFLAGS="-static"
+export LDFLAGS="-L${LIBCARES_PATH} -Wl,-rpath=${LIBCARES_PATH}"
+make all C_INCLUDE_PATH=$ROOT_DIR/_build/c-ares-1.10.0
+
+cd ..
+
+
+echo "===> Installing mosquitto..."
+INSTALL=$(which install)
+$INSTALL -d ${ROOT_DIR}/bin
+$INSTALL -s src/mosquitto ${ROOT_DIR}/bin/mosquitto
+$INSTALL -s src/mosquitto_passwd ${ROOT_DIR}/bin/mosquitto_passwd
+$INSTALL -s client/mosquitto_pub ${ROOT_DIR}/bin/mosquitto_pub
+$INSTALL -s client/mosquitto_sub ${ROOT_DIR}/bin/mosquitto_sub
+$INSTALL -d ${ROOT_DIR}/etc
+$INSTALL -m 644 mosquitto.conf ${ROOT_DIR}/etc/mosquitto.conf.example
+$INSTALL -m 644 aclfile.example ${ROOT_DIR}/etc/aclfile.example
+$INSTALL -m 644 pwfile.example ${ROOT_DIR}/etc/pwfile.example
+$INSTALL -m 644 pskfile.example ${ROOT_DIR}/etc/pskfile.exam
+
+echo "===> Cleaning up _build directory..."
+rm -rf _build
